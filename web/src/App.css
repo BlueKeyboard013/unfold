@@ -1,0 +1,165 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 16px 40px;
+  flex-grow: 1;
+  box-sizing: border-box;
+}
+
+.app-shell h1 {
+  margin: 8px 0 0;
+}
+
+.subtitle {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.card-stack {
+  position: relative;
+  width: min(360px, 90vw);
+  height: min(480px, 60vh);
+  margin-top: 16px;
+}
+
+.swipe-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--code-bg);
+  touch-action: none;
+  cursor: grab;
+}
+
+.swipe-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.badge {
+  position: absolute;
+  top: 24px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 1px;
+  border: 3px solid;
+}
+
+.badge-like {
+  left: 20px;
+  color: #22c55e;
+  border-color: #22c55e;
+  transform: rotate(-12deg);
+}
+
+.badge-nope {
+  right: 20px;
+  color: #ef4444;
+  border-color: #ef4444;
+  transform: rotate(12deg);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.round-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.round-button:hover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow);
+}
+
+.round-button.nope {
+  color: #ef4444;
+}
+
+.round-button.like {
+  color: #ec4899;
+}
+
+.primary-button,
+.secondary-button {
+  margin-top: 12px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: white;
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.profile-list {
+  width: min(480px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.profile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.profile-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.profile-bar-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.profile-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 6px;
+}
+
+.profile-count {
+  font-size: 12px;
+  color: var(--text);
+}
