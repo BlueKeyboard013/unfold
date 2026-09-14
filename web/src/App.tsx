@@ -1,73 +1,83 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { buildDeck, MINIMUM_SWIPES } from "./deck";
 import type { DeckCard } from "./deck";
 import { SwipeCard } from "./SwipeCard";
 import { STYLE_NAMES } from "./styles";
+import { fetchStyleProfile, recordSwipe } from "./api";
+import type { StyleProfileResponse } from "./api";
+import { getOrCreateUserId } from "./userId";
 import "./App.css";
 
-interface Swipe {
-  filename: string;
-  style: string;
-  direction: "left" | "right";
-}
-
-function buildStyleProfile(swipes: Swipe[]) {
-  const likes = swipes.filter((s) => s.direction === "right");
-  const counts = new Map<string, number>();
-  for (const like of likes) {
-    counts.set(like.style, (counts.get(like.style) ?? 0) + 1);
-  }
-  const total = likes.length;
-  return [...counts.entries()]
-    .map(([style, count]) => ({
-      style,
-      count,
-      weight: total === 0 ? 0 : count / total,
-    }))
-    .sort((a, b) => b.weight - a.weight);
-}
-
 function App() {
+  const [userId] = useState<string>(() => getOrCreateUserId());
   const [deck] = useState<DeckCard[]>(() => buildDeck());
   const [index, setIndex] = useState(0);
-  const [swipes, setSwipes] = useState<Swipe[]>([]);
+  const [swipeCount, setSwipeCount] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [profile, setProfile] = useState<StyleProfileResponse | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   const currentCard = deck[index];
   const nextCard = deck[index + 1];
 
-  const canSeeResults = swipes.length >= MINIMUM_SWIPES;
-  const profile = useMemo(() => buildStyleProfile(swipes), [swipes]);
+  const canSeeResults = swipeCount >= MINIMUM_SWIPES;
 
   function handleSwipe(direction: "left" | "right") {
     if (!currentCard) return;
-    setSwipes((prev) => [
-      ...prev,
-      { filename: currentCard.filename, style: currentCard.style, direction },
-    ]);
+    recordSwipe({
+      userId,
+      filename: currentCard.filename,
+      style: currentCard.style,
+      direction,
+    }).catch((err) => console.error("Failed to record swipe", err));
+    setSwipeCount((prev) => prev + 1);
     setIndex((prev) => prev + 1);
+  }
+
+  async function handleSeeResults() {
+    setShowResults(true);
+    setLoadingProfile(true);
+    setProfileError(null);
+    try {
+      const result = await fetchStyleProfile(userId);
+      setProfile(result);
+    } catch (err) {
+      setProfileError("Couldn't load your style profile. Is the backend running?");
+      console.error(err);
+    } finally {
+      setLoadingProfile(false);
+    }
   }
 
   if (showResults) {
     return (
       <div className="app-shell">
         <h1>Your Style Profile</h1>
-        <p className="subtitle">Based on {swipes.filter((s) => s.direction === "right").length} liked images</p>
-        <div className="profile-list">
-          {profile.map(({ style, count, weight }) => (
-            <div key={style} className="profile-row">
-              <div className="profile-label">
-                <span>{STYLE_NAMES[style] ?? style}</span>
-                <span>{Math.round(weight * 100)}%</span>
-              </div>
-              <div className="profile-bar-track">
-                <div className="profile-bar-fill" style={{ width: `${weight * 100}%` }} />
-              </div>
-              <span className="profile-count">{count} likes</span>
+        {loadingProfile && <p className="subtitle">Loading your style profile…</p>}
+        {profileError && <p className="subtitle">{profileError}</p>}
+        {profile && (
+          <>
+            <p className="subtitle">Based on {profile.totalLikes} liked images</p>
+            <div className="profile-list">
+              {profile.profile.map(({ style, count, weight }) => (
+                <div key={style} className="profile-row">
+                  <div className="profile-label">
+                    <span>{STYLE_NAMES[style] ?? style}</span>
+                    <span>{Math.round(weight * 100)}%</span>
+                  </div>
+                  <div className="profile-bar-track">
+                    <div className="profile-bar-fill" style={{ width: `${weight * 100}%` }} />
+                  </div>
+                  <span className="profile-count">{count} likes</span>
+                </div>
+              ))}
+              {profile.profile.length === 0 && (
+                <p>You didn't like any images yet — try swiping right on a few!</p>
+              )}
             </div>
-          ))}
-          {profile.length === 0 && <p>You didn't like any images yet — try swiping right on a few!</p>}
-        </div>
+          </>
+        )}
         <button className="secondary-button" onClick={() => setShowResults(false)}>
           Back to swiping
         </button>
@@ -80,7 +90,7 @@ function App() {
       <div className="app-shell">
         <h1>That's every image!</h1>
         <p className="subtitle">You've swiped through the whole deck.</p>
-        <button className="primary-button" onClick={() => setShowResults(true)}>
+        <button className="primary-button" onClick={handleSeeResults}>
           See my style profile
         </button>
       </div>
@@ -91,7 +101,7 @@ function App() {
     <div className="app-shell">
       <h1>Discover Your Style</h1>
       <p className="subtitle">
-        Swipe right if you like it, left if you don't. {swipes.length}/{MINIMUM_SWIPES} minimum swipes
+        Swipe right if you like it, left if you don't. {swipeCount}/{MINIMUM_SWIPES} minimum swipes
       </p>
 
       <div className="card-stack">
@@ -109,8 +119,8 @@ function App() {
       </div>
 
       {canSeeResults && (
-        <button className="secondary-button" onClick={() => setShowResults(true)}>
-          See my style profile ({swipes.length} swipes)
+        <button className="secondary-button" onClick={handleSeeResults}>
+          See my style profile ({swipeCount} swipes)
         </button>
       )}
     </div>
