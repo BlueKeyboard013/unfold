@@ -12,6 +12,7 @@ const SWIPE_THRESHOLD = 100;
 
 export function SwipeCard({ card, onSwipe, isTop }: SwipeCardProps) {
   const [drag, setDrag] = useState({ x: 0, y: 0, dragging: false });
+  const [imageLoaded, setImageLoaded] = useState(false);
   const startPos = useRef({ x: 0, y: 0 });
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
@@ -56,7 +57,14 @@ export function SwipeCard({ card, onSwipe, isTop }: SwipeCardProps) {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <img src={card.imageUrl} alt="Interior design reference" draggable={false} />
+      <img
+        src={card.imageUrl}
+        alt="Interior design reference"
+        draggable={false}
+        onLoad={() => setImageLoaded(true)}
+        style={{ opacity: imageLoaded ? 1 : 0, transition: "opacity 0.15s ease" }}
+      />
+      {!imageLoaded && <div className="swipe-card-spinner" aria-hidden="true" />}
       {isTop && drag.x > 30 && <div className="badge badge-like">LIKE</div>}
       {isTop && drag.x < -30 && <div className="badge badge-nope">NOPE</div>}
     </div>

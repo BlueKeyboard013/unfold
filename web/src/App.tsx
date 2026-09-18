@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { buildDeck, MINIMUM_SWIPES } from "./deck";
 import type { DeckCard } from "./deck";
 import { SwipeCard } from "./SwipeCard";
@@ -22,6 +22,16 @@ function App() {
   const nextCard = deck[index + 1];
 
   const canSeeResults = swipeCount >= MINIMUM_SWIPES;
+
+  const PRELOAD_AHEAD = 4;
+  useEffect(() => {
+    for (let i = index + 1; i <= index + PRELOAD_AHEAD; i++) {
+      const card = deck[i];
+      if (!card) continue;
+      const img = new Image();
+      img.src = card.imageUrl;
+    }
+  }, [index, deck]);
 
   function handleSwipe(direction: "left" | "right") {
     if (!currentCard) return;
@@ -58,7 +68,7 @@ function App() {
         {profileError && <p className="subtitle">{profileError}</p>}
         {profile && (
           <>
-            <p className="subtitle">Based on {profile.totalLikes} liked images</p>
+            <p className="subtitle">You liked {profile.totalLikes} images</p>
             <div className="profile-list">
               {profile.profile.map(({ style, count, weight }) => (
                 <div key={style} className="profile-row">
